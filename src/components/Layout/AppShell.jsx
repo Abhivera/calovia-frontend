@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
-import DietlyLogo from "./DietlyLogo";
+import CaloviaLogo from "./CaloviaLogo";
 import { Menu, X } from "lucide-react";
 
 export default function AppShell({ children }) {
@@ -27,7 +27,7 @@ export default function AppShell({ children }) {
         }`}
       >
         <div className="p-4 flex items-center justify-between border-b">
-          <DietlyLogo to="/" />
+          <CaloviaLogo to="/" />
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
@@ -72,7 +72,7 @@ export default function AppShell({ children }) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <DietlyLogo to="/" />
+          <CaloviaLogo to="/" />
         </header>
         <main className="flex-1">{children}</main>
       </div>

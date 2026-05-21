@@ -1,6 +1,6 @@
-# Dietly Frontend
+# Calovia Frontend
 
-React (Vite) app for the Dietly nutrition and activity tracking API.
+React (Vite) app for the Calovia nutrition and activity tracking API.
 
 ## Environment
 
@@ -34,14 +34,14 @@ npm run preview
 ## Docker
 
 ```sh
-docker build -t dietly-frontend .
-docker run -p 5173:80 dietly-frontend
+docker build -t calovia-frontend .
+docker run -p 5173:80 calovia-frontend
 ```
 
 ## Project structure
 
 ```
-dietly-frontend/
+calovia-frontend/
 ├── public/                 # Static assets (favicon, etc.)
 ├── src/
 │   ├── api/                # HTTP clients (Axios + public fetch)

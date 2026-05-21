@@ -360,7 +360,7 @@ export default function HeroSection() {
               className="text-sm leading-relaxed mb-7 max-w-[340px] hero-anim-3"
               style={{ color: MINT_TEXT }}
             >
-              Dietly uses AI to detect food from photos and track your calories,
+              Calovia uses AI to detect food from photos and track your calories,
               macros, steps, and streaks — all in one clean dashboard.
             </p>
 

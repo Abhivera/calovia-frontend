@@ -21,7 +21,7 @@ export default function PublicNavbar() {
           <div className="w-[30px] h-[30px] bg-[#1D9E75] rounded-lg flex items-center justify-center">
             <LeafyGreen className="w-[17px] h-[17px] text-white" strokeWidth={2} />
           </div>
-          <span className="text-[17px] font-medium text-gray-900">Dietly</span>
+          <span className="text-[17px] font-medium text-gray-900">Calovia</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-6">

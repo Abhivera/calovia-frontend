@@ -70,7 +70,7 @@ export default function Auth() {
         <div className="flex justify-center mb-3">
           <div className="w-10 h-10 rounded-lg bg-[#24a17b]" aria-hidden />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Dietly</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Calovia</h1>
         <p className="text-sm text-gray-500 mt-1">
           Track meals, steps, and calories
         </p>

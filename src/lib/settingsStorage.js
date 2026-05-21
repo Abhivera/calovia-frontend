@@ -1,4 +1,4 @@
-const KEY = "dietly_settings";
+const KEY = "calovia_settings";
 
 const DEFAULTS = {
   dailyMealReminder: true,

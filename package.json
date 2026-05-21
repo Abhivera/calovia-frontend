@@ -1,8 +1,8 @@
 {
-  "name": "dietly-frontend",
+  "name": "calovia-frontend",
   "private": true,
   "version": "1.0.0",
-  "description": "Dietly — React nutrition & activity tracking app",
+  "description": "Calovia — React nutrition & activity tracking app",
   "type": "module",
   "scripts": {
     "dev": "vite",

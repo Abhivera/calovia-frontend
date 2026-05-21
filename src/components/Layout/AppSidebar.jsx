@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/slices/authSlice";
-import DietlyLogo from "./DietlyLogo";
+import CaloviaLogo from "./CaloviaLogo";
 import { getInitials } from "@/lib/format";
 import {
   LayoutDashboard,
@@ -66,7 +66,7 @@ export default function AppSidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-56 shrink-0 border-r border-gray-200 bg-white min-h-screen sticky top-0">
       <div className="p-5 border-b border-gray-100">
-        <DietlyLogo to="/" />
+        <CaloviaLogo to="/" />
       </div>
 
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">

@@ -37,7 +37,7 @@ export function getUtcIsoWeekString(date = new Date()) {
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-/** Meal/image list filters aligned with Dietly API (`date` | `week` | `month`). */
+/** Meal/image list filters aligned with Calovia API (`date` | `week` | `month`). */
 export function mealPeriodParams(period) {
   const today = getUtcDateString();
   if (period === "today") return { date: today };

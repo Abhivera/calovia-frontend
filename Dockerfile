@@ -1,4 +1,4 @@
-# Dockerfile for Dietly Frontend (React + Vite)
+# Dockerfile for Calovia Frontend (React + Vite)
 
 # 1. Build stage
 FROM node:20-alpine AS builder

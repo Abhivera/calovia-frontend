@@ -57,7 +57,7 @@ const STEPS = [
   {
     n: 1,
     title: "Take a photo of your meal",
-    desc: "Open Dietly, tap the camera. Point it at your plate — any angle, any lighting. Upload and let the AI do the work.",
+    desc: "Open Calovia, tap the camera. Point it at your plate — any angle, any lighting. Upload and let the AI do the work.",
   },
   {
     n: 2,
@@ -464,7 +464,7 @@ export default function NonUserHome() {
             >
               <LeafyGreen className="w-3.5 h-3.5 text-white" strokeWidth={2} />
             </div>
-            <span className="text-sm font-medium">Dietly</span>
+            <span className="text-sm font-medium">Calovia</span>
           </div>
           <div className="flex gap-5">
             {["Privacy", "Terms", "API docs", "Contact"].map((label) => (
@@ -476,7 +476,7 @@ export default function NonUserHome() {
               </span>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© 2026 Dietly. All rights reserved.</p>
+          <p className="text-xs text-gray-400">© 2026 Calovia. All rights reserved.</p>
         </div>
       </footer>
     </div>

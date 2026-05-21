@@ -1,4 +1,4 @@
-// Base URL includes /api/v1 prefix (see Dietly API docs).
+// Base URL includes /api/v1 prefix (see Calovia API docs).
 export const API_CONFIG = {
   BASE_URL:
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",

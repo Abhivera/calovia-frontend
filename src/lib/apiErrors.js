@@ -1,5 +1,5 @@
 /**
- * Extract a user-facing message from Dietly API error responses.
+ * Extract a user-facing message from Calovia API error responses.
  * @param {import('axios').AxiosError | Error} error
  * @returns {string}
  */
