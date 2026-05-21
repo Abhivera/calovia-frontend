@@ -1,39 +1,49 @@
-// src/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as authApi from "../api/auth";
+import * as userApi from "../api/user";
+import { getApiErrorMessage } from "../lib/apiErrors";
 
 const tokenFromStorage = localStorage.getItem("access_token");
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ username, password }, { rejectWithValue }) => {
-    const res = await authApi.login({ username, password });
-    if (res.access_token) {
-      localStorage.setItem("access_token", res.access_token);
-      return { token: res.access_token };
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const res = await authApi.login({ email, password });
+      if (res.access_token) {
+        localStorage.setItem("access_token", res.access_token);
+        return { token: res.access_token };
+      }
+      return rejectWithValue("Invalid credentials");
+    } catch (e) {
+      return rejectWithValue(getApiErrorMessage(e));
     }
-    return rejectWithValue(res.detail || "Invalid credentials");
   }
 );
 
 export const register = createAsyncThunk(
   "auth/register",
   async (data, { rejectWithValue }) => {
-    const res = await authApi.register(data);
-    if (res.detail) return rejectWithValue(res.detail);
-    return res;
+    try {
+      const res = await authApi.register(data);
+      if (res.access_token) {
+        localStorage.setItem("access_token", res.access_token);
+        return { token: res.access_token };
+      }
+      return rejectWithValue("Registration failed");
+    } catch (e) {
+      return rejectWithValue(getApiErrorMessage(e));
+    }
   }
 );
 
 export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
-  async (token, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const user = await authApi.getCurrentUser(token);
-      return user;
+      return await userApi.getUser();
     } catch (e) {
-      console.log(e);
-      return rejectWithValue("Failed to fetch user");
+      return rejectWithValue(getApiErrorMessage(e));
     }
   }
 );
@@ -45,7 +55,6 @@ const authSlice = createSlice({
     user: null,
     loading: false,
     error: null,
-    registerSuccess: null,
   },
   reducers: {
     logout(state) {
@@ -55,12 +64,6 @@ const authSlice = createSlice({
     },
     clearError(state) {
       state.error = null;
-    },
-    clearRegisterSuccess(state) {
-      state.registerSuccess = null;
-    },
-    setToken(state, action) {
-      state.token = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -81,12 +84,11 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.registerSuccess = null;
       })
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
-        state.registerSuccess =
-          "Registration started. Please check your email to verify.";
+        state.token = action.payload.token;
+        state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -110,6 +112,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, clearRegisterSuccess, setToken } =
-  authSlice.actions;
+export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;

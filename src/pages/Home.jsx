@@ -1,12 +1,8 @@
 import { useSelector } from "react-redux";
-import UserHome from "./UserHome";
+import Dashboard from "./Dashboard";
 import NonUserHome from "./NonUserHome";
 
-
-
-const Home = () => {
+export default function Home() {
   const token = useSelector((state) => state.auth.token);
-  return token ? <UserHome /> : <NonUserHome />;
+  return token ? <Dashboard /> : <NonUserHome />;
 }
-
-export default Home;

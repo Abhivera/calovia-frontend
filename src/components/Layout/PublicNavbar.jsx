@@ -1,104 +1,94 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { User, UserPlus, Home as HomeIcon, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { LeafyGreen, Menu, X } from "lucide-react";
+
+const NAV_LINKS = [
+  { label: "Features", href: "#features" },
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Try free", href: "#try-free" },
+];
 
 export default function PublicNavbar() {
-  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const isActiveRoute = (path) => location.pathname === path;
-
-  const navigationItems = [
-
-    {
-      path: "/login",
-      label: "Sign Up / Log In",
-      icon: (
-        <span className="border border-gray-300 rounded-md p-1 mr-2">
-          <User className="w-5 h-5" />
-        </span>
-      ),
-    },
-  ];
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-40 w-full">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between relative">
-        {/* Mobile Hamburger - left */}
-        <div className="md:hidden flex-shrink-0">
-          <button
-            className="p-2 rounded-lg text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label="Toggle navigation menu"
-          >
-            {menuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-        {/* Logo - centered on mobile, left on desktop */}
-        <Link
-          to="/"
-          className="flex items-center gap-1 md:static md:left-0 md:translate-x-0 absolute left-1/2 -translate-x-1/2 md:relative"
-          style={{
-            position: "absolute",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 10,
-            ...(window.innerWidth >= 768
-              ? { position: "relative", left: "0", transform: "none" }
-              : {}),
-          }}
-        >
-          <img
-            src="https://myabhibucket30june2025.s3.ap-south-1.amazonaws.com/default_media/one_leaf.svg"
-            alt="Dietly Logo"
-            className="w-8 h-8 rounded-lg object-contain"
-          />
-          <span className="font-bold text-emerald-700 text-lg">Dietly</span>
-        </Link>
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6 ml-auto">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                isActiveRoute(item.path)
-                  ? "bg-emerald-600 text-white"
-                  : "text-emerald-700 hover:bg-emerald-100"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white/95 border-t border-emerald-100 px-4 pb-4 animate-fade-in">
-          <div className="flex flex-col gap-2 mt-2">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${
-                  isActiveRoute(item.path)
-                    ? "bg-emerald-600 text-white"
-                    : "text-emerald-700 hover:bg-emerald-100"
-                }`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-200/80 px-4 sm:px-8 py-3.5">
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-[30px] h-[30px] bg-[#1D9E75] rounded-lg flex items-center justify-center">
+            <LeafyGreen className="w-[17px] h-[17px] text-white" strokeWidth={2} />
           </div>
+          <span className="text-[17px] font-medium text-gray-900">Dietly</span>
+        </Link>
+
+        <nav className="hidden lg:flex items-center gap-6">
+          {NAV_LINKS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="text-sm text-gray-500 hover:text-[#1D9E75] transition-colors py-1"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="hidden sm:flex items-center gap-2">
+          <Link
+            to="/login"
+            className="px-4 py-1.5 text-[13px] rounded-lg border border-gray-300 text-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/register"
+            className="px-4 py-1.5 text-[13px] rounded-lg bg-[#1D9E75] text-white font-medium hover:bg-[#188f6a] transition-colors"
+          >
+            Get started free
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          className="lg:hidden p-2 text-gray-600"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+        >
+          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div className="lg:hidden border-t border-gray-100 mt-3 pt-3 px-4 pb-2 space-y-1">
+          {NAV_LINKS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={closeMenu}
+              className="block py-2 text-sm text-gray-600 hover:text-[#1D9E75]"
+            >
+              {item.label}
+            </a>
+          ))}
+          <Link
+            to="/login"
+            onClick={closeMenu}
+            className="block py-2 text-sm text-gray-700"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/register"
+            onClick={closeMenu}
+            className="block py-2 text-sm font-medium text-[#1D9E75]"
+          >
+            Get started free
+          </Link>
         </div>
       )}
-    </nav>
+    </header>
   );
 }

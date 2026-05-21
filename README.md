@@ -1,42 +1,104 @@
 # Dietly Frontend
 
-A modern, production-ready React (Vite) frontend for the Dietly nutrition and calorie tracking app.
+React (Vite) app for the Dietly nutrition and activity tracking API.
 
+## Environment
 
-## Getting Started
-
-## Environment Variables
-
-- The frontend expects a backend API URL via the `VITE_API_BASE_URL` environment variable. Set this in your `.env` file or as a build arg if needed.
-
-### Local Development
-
-1. **Install dependencies:**
-   ```sh
-   npm install
-   ```
-2. **Start the development server:**
-   ```sh
-   npm run dev
-   ```
-   The app will be available at [http://localhost:5173](http://localhost:5173)
-
-### Docker Usage
-
-To build and run the frontend using Docker:
+Copy `.env.example` to `.env`:
 
 ```sh
-# Build the Docker image
-# (replace dietly-frontend with your preferred image name)
-docker build -t dietly-frontend .
+cp .env.example .env
+```
 
-# Run the container on port 5173 (host) mapped to 80 (container)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Backend API base (includes `/api/v1`) |
+
+## Development
+
+```sh
+npm install
+npm run dev
+```
+
+App: [http://localhost:5173](http://localhost:5173)  
+API docs (backend): [http://localhost:8000/docs](http://localhost:8000/docs)
+
+## Build
+
+```sh
+npm run build
+npm run preview
+```
+
+## Docker
+
+```sh
+docker build -t dietly-frontend .
 docker run -p 5173:80 dietly-frontend
 ```
 
-The app will be available at [http://localhost:5173](http://localhost:5173)
+## Project structure
 
-> **Note:** The container serves the production build using Nginx. The port mapping (`-p 5173:80`) exposes the app on your host's port 5173. You can change the host port if needed.
+```
+dietly-frontend/
+├── public/                 # Static assets (favicon, etc.)
+├── src/
+│   ├── api/                # HTTP clients (Axios + public fetch)
+│   │   ├── auth.js         # POST /auth/login, /auth/register
+│   │   ├── axiosInstance.js
+│   │   ├── images.js       # Meal photo upload, analyze, relog
+│   │   ├── meal.js         # Meal summaries
+│   │   ├── steps.js        # Step tracking summaries
+│   │   ├── user.js         # Profile, streak, net calories, avatar
+│   │   └── userCalories.js # Activity / exercise log entries
+│   ├── components/
+│   │   ├── dashboard/      # MacroRings, StepBarChart
+│   │   ├── Layout/         # AppShell, AppSidebar, PublicNavbar, …
+│   │   ├── meal/           # MealAnalysisResult
+│   │   └── ui/             # PillButton, Toggle
+│   ├── config/
+│   │   └── api.js          # Base URL helpers
+│   ├── lib/
+│   │   ├── activities.js   # Activity type presets
+│   │   ├── apiErrors.js    # Axios error message helper
+│   │   ├── bmi.js
+│   │   ├── format.js       # Dates, numbers, initials
+│   │   └── settingsStorage.js
+│   ├── pages/              # Route screens (see below)
+│   ├── slices/
+│   │   └── authSlice.js    # Redux: token, user, login/register
+│   ├── App.jsx             # Router + auth bootstrap
+│   ├── main.jsx            # React root + Redux Provider
+│   ├── store.js
+│   └── index.css           # Tailwind + theme tokens
+├── .env.example
+├── components.json         # shadcn/ui config (optional CLI)
+├── Dockerfile
+├── index.html
+├── nginx.conf
+├── package.json
+└── vite.config.js
+```
 
+### Routes
 
+| Path | Page | Auth |
+|------|------|------|
+| `/` | `Home` → `Dashboard` (signed in) or `NonUserHome` (guest) | Optional |
+| `/login` | `Auth` (login tab) | Public |
+| `/register` | `Auth` (register tab) | Public |
+| `/meal-log` | `MealLog` | Required |
+| `/activity` | `ActivityLog` | Required |
+| `/progress` | `Progress` | Required |
+| `/profile` | `Profile` | Required |
+| `/settings` | `Settings` | Required |
+| `*` | `NotFound` | Public |
 
+Authenticated screens use `AppShell` (sidebar + mobile header). Guests on `/` see the public landing with optional food photo analysis (`POST /public/analyze-food`).
+
+### Auth
+
+- `POST /auth/login` and `POST /auth/register` (email + password JSON)
+- Access token in `localStorage` as `access_token`
+- `ProtectedRoute` redirects unauthenticated users to `/login`

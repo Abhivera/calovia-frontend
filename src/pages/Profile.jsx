@@ -1,457 +1,390 @@
-// src/pages/Profile.jsx
-import { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import * as userApi from "../api/user";
-import * as authApi from "../api/auth";
-import { getCurrentUser } from "../slices/authSlice";
-import { Popconfirm } from "antd";
-import {
-  User,
-  Mail,
-  Calendar,
-  Camera,
-  Lock,
-  Save,
-  X,
-  Upload,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../slices/authSlice";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import AppShell from "@/components/Layout/AppShell";
+import * as userApi from "@/api/user";
+import { getStreak } from "@/api/user";
+import { getMealSummary } from "@/api/meal";
+import { getCurrentUser } from "@/slices/authSlice";
+import { calculateBmi, getBmiStatus } from "@/lib/bmi";
+import { formatNumber, getInitials } from "@/lib/format";
+import { getApiErrorMessage } from "@/lib/apiErrors";
+import { Camera, Flame, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#24a17b]/30 focus:border-[#24a17b] outline-none";
 
 export default function Profile() {
   const dispatch = useDispatch();
-  const { token } = useSelector((state) => state.auth);
+  const { user: authUser } = useSelector((state) => state.auth);
+  const fileRef = useRef(null);
+
   const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [streak, setStreak] = useState(null);
+  const [mealCount, setMealCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    username: "",
+    gender: "",
+    age: "",
+    weight: "",
+    height: "",
+    goal_weight: "",
+    step_goal: 8000,
   });
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [message, setMessage] = useState("");
-  const [passwords, setPasswords] = useState({
-    current_password: "",
-    new_password: "",
-  });
-  const fileInputRef = useRef(null);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const navigate = useNavigate();
+  const [initial, setInitial] = useState(null);
 
-  // Fetch user data on component mount
   useEffect(() => {
-    const fetchUser = async () => {
-      if (token) {
-        const userData = await userApi.getUser();
+    async function load() {
+      setLoading(true);
+      try {
+        const [userData, streakData, meals] = await Promise.all([
+          userApi.getUser(),
+          getStreak().catch(() => null),
+          getMealSummary().catch(() => null),
+        ]);
         setUser(userData);
-        setForm({
+        setStreak(streakData);
+        setMealCount(meals?.total_meals ?? meals?.meals?.length ?? 0);
+        const f = {
           full_name: userData.full_name || "",
           email: userData.email || "",
-          username: userData.username || "",
-        });
+          gender: userData.gender || "",
+          age: userData.age ?? "",
+          weight: userData.weight ?? "",
+          height: userData.height ?? "",
+          goal_weight: userData.goal_weight ?? "",
+          step_goal: userData.step_goal ?? 8000,
+        };
+        setForm(f);
+        setInitial(f);
+      } catch {
+        toast.error("Could not load profile");
+      } finally {
+        setLoading(false);
       }
-    };
-    fetchUser();
-  }, [token]);
-
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
-  const handlePasswordChange = (e) =>
-    setPasswords({ ...passwords, [e.target.name]: e.target.value });
-
-  const handleAvatarClick = () => {
-    if (isEditing) {
-      fileInputRef.current?.click();
     }
+    load();
+  }, []);
+
+  const dirty = useMemo(() => {
+    if (!initial) return false;
+    return JSON.stringify(form) !== JSON.stringify(initial);
+  }, [form, initial]);
+
+  const bmi = calculateBmi(
+    form.weight === "" ? null : Number(form.weight),
+    form.height === "" ? null : Number(form.height)
+  );
+  const bmiStatus = getBmiStatus(bmi);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAvatar(file);
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarPreview(e.target.result);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const profilePayload = {
+        full_name: form.full_name || undefined,
+        gender: form.gender || null,
+        age: form.age === "" ? null : Number(form.age),
+        weight: form.weight === "" ? null : Number(form.weight),
+        height: form.height === "" ? null : Number(form.height),
+        goal_weight: form.goal_weight === "" ? null : Number(form.goal_weight),
       };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Update handleUpdate to only save if username is not changed, otherwise show Popconfirm
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    if (form.username !== user.username) {
-      setShowLogoutConfirm(true); // This line is removed as per the edit hint
-      return;
-    }
-    const res = await userApi.updateUser(form);
-    if (res.detail) setMessage(res.detail);
-    else {
-      setMessage("Profile updated");
-      dispatch(getCurrentUser(token));
-      // Refresh user data
-      const userData = await userApi.getUser();
-      setUser(userData);
-      setIsEditing(false);
+      let updated = await userApi.updateUser(profilePayload);
+      const stepGoal = Number(form.step_goal) || 8000;
+      if (initial && Number(initial.step_goal) !== stepGoal) {
+        updated = await userApi.updateStepGoal(stepGoal);
+      }
+      setUser(updated);
+      setInitial({ ...form });
+      dispatch(getCurrentUser());
+      toast.success("Profile saved");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAvatar = async (e) => {
-    e.preventDefault();
-    if (!avatar) return;
-    setMessage("");
-    const res = await userApi.uploadAvatar(avatar);
-    if (res.detail) setMessage(res.detail);
-    else {
-      setMessage("Avatar updated");
-      dispatch(getCurrentUser(token));
-      // Refresh user data
-      const userData = await userApi.getUser();
-      setUser(userData);
-      setAvatar(null);
-      setAvatarPreview(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      await userApi.uploadAvatar(file);
+      const updated = await userApi.getUser();
+      setUser(updated);
+      dispatch(getCurrentUser());
+      toast.success("Photo updated");
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = "";
     }
   };
 
-  const handlePassword = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    const res = await authApi.changePassword(
-      token,
-      passwords.current_password,
-      passwords.new_password
-    );
-    if (res.detail) setMessage(res.detail);
-    else {
-      setMessage("Password changed");
-      setPasswords({ current_password: "", new_password: "" });
-    }
-  };
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "—";
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setMessage("");
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setForm({
-      full_name: user?.full_name || "",
-      email: user?.email || "",
-      username: user?.username || "",
-    });
-    setAvatar(null);
-    setAvatarPreview(null);
-    setMessage("");
-  };
-
-  // Confirm handler for Popconfirm: actually update and then logout
-  const handleLogoutConfirm = async () => {
-    setShowLogoutConfirm(false);
-    const res = await userApi.updateUser(form);
-    if (res.detail) {
-      setMessage(res.detail);
-      return;
-    }
-    dispatch(logout());
-    navigate("/login");
-  };
-  const handleLogoutCancel = () => {
-    setShowLogoutConfirm(false);
-  };
-
-  if (!user) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-emerald-50 flex items-center justify-center">
-        <div className="text-emerald-600 text-lg font-medium">Loading...</div>
-      </div>
+      <AppShell>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#24a17b]" />
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 py-2 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-800 flex items-center gap-3">
-            <User className="w-8 h-8" />
-            Profile
-          </h1>
-          {!isEditing && (
+    <AppShell>
+      <div className="p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Manage your personal info and goals
+            </p>
+          </div>
+          {dirty && (
             <button
-              onClick={handleEdit}
-              className="text-emerald-600 bg-white border border-emerald-600 px-6 py-3 rounded-lg font-medium hover:text-emerald-700 hover:border-emerald-700 transition-colors duration-200 flex items-center gap-2"
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="shrink-0 bg-[#24a17b] hover:bg-[#1e8a6a] text-white px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
             >
-              <User className="w-4 h-4" />
-              Edit Profile
+              {saving ? "Saving…" : "Save changes"}
             </button>
           )}
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Avatar and Basic Info */}
-          <div className="lg:col-span-1">
-            {/* User Avatar */}
-            <div className="bg-white rounded-lg p-8 shadow-sm border border-emerald-100 mb-6">
-              <div className="flex flex-col items-center">
-                <div className="relative mb-4">
+        <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row gap-6 items-start">
+            <div className="relative shrink-0">
+              <div className="w-24 h-24 rounded-full bg-[#e8f5f0] flex items-center justify-center text-2xl font-bold text-[#24a17b] overflow-hidden">
+                {user?.avatar_url ? (
                   <img
-                    src={
-                      avatarPreview ||
-                      user.avatar_url ||
-                      "https://myabhibucket30june2025.s3.ap-south-1.amazonaws.com/default_media/default_avatar.png"
-                    }
-                    alt="User Avatar"
-                    className={`w-32 h-32 rounded-full object-cover border-4 border-emerald-200 shadow-lg ${
-                      isEditing
-                        ? "cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                        : ""
-                    }`}
-                    onClick={handleAvatarClick}
+                    src={user.avatar_url}
+                    alt=""
+                    className="w-full h-full object-cover"
                   />
-                  {isEditing && (
-                    <div className="absolute bottom-0 right-0 bg-emerald-600 text-white p-2 rounded-full shadow-lg">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-xl font-semibold text-emerald-800 mb-2">
-                  {user.full_name}
-                </h3>
-                <p className="text-emerald-600 text-sm mb-4">{user.email}</p>
-
-                {/* Upload Avatar Button */}
-                {isEditing && (
-                  <div className="w-full">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      onChange={handleAvatarChange}
-                      className="hidden"
-                      accept="image/*"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full bg-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors duration-200 flex items-center justify-center gap-2"
-                    >
-                      <Camera className="w-4 h-4" />
-                      Change Avatar
-                    </button>
-                    {avatar && (
-                      <button
-                        type="button"
-                        onClick={handleAvatar}
-                        className="w-full mt-2 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
-                        <Upload className="w-4 h-4" />
-                        Upload Avatar
-                      </button>
-                    )}
-                  </div>
+                ) : (
+                  getInitials(form.full_name, form.email)
                 )}
               </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={avatarUploading}
+                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#24a17b] text-white flex items-center justify-center shadow-md hover:bg-[#1e8a6a] disabled:opacity-50"
+                aria-label="Upload photo"
+              >
+                {avatarUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatar}
+              />
             </div>
-
-            {/* Quick Stats */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-emerald-100">
-              <h4 className="text-lg font-semibold text-emerald-800 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Member Since
-              </h4>
-              <p className="text-emerald-700 font-medium">
-                {new Date(user.created_at).toLocaleDateString()}
-              </p>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {form.full_name || "Your name"}
+              </h2>
+              <p className="text-sm text-gray-500">{form.email}</p>
+              <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e8f5f0] text-[#1a7a5c]">
+                Member since {memberSince}
+              </span>
             </div>
           </div>
 
-          {/* Right Column - Forms */}
-          <div className="lg:col-span-2">
-            {/* Profile Information Display */}
-            {!isEditing ? (
-              <div className="bg-white rounded-lg p-8 shadow-sm border border-emerald-100">
-                <h3 className="text-xl font-semibold text-emerald-800 mb-6 flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Profile Information
-                </h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Full Name
-                    </label>
-                    <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <span className="text-emerald-800 font-medium">
-                        {user.full_name}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      Email
-                    </label>
-                    <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <span className="text-emerald-800 font-medium">
-                        {user.email}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Username
-                    </label>
-                    <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <span className="text-emerald-800 font-medium">
-                        {user.username}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Edit Forms */
-              <div className="space-y-6">
-                {/* Profile Update Form */}
-                <div className="bg-white rounded-lg p-8 shadow-sm border border-emerald-100">
-                  <h3 className="text-xl font-semibold text-emerald-800 mb-6 flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    Update Profile Information
-                  </h3>
-                  <form onSubmit={handleUpdate} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Full Name
-                      </label>
-                      <input
-                        name="full_name"
-                        value={form.full_name}
-                        onChange={handleChange}
-                        className="w-full p-4 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors duration-200"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email
-                      </label>
-                      <input
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        className="w-full p-4 border border-emerald-200 rounded-lg bg-emerald-50 text-emerald-600 cursor-not-allowed"
-                        placeholder="Enter your email"
-                        disabled
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Username
-                      </label>
-                      <input
-                        name="username"
-                        value={form.username}
-                        onChange={handleChange}
-                        className="w-full p-4 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors duration-200"
-                        placeholder="Enter your username"
-                      />
-                    </div>
-                    <div className="flex gap-4 pt-4">
-                      <Popconfirm
-                        title="Username changed"
-                        description="Your username has been changed. You will be logged out for security reasons. Please log in again with your new username."
-                        open={showLogoutConfirm}
-                        onConfirm={handleLogoutConfirm}
-                        onCancel={handleLogoutCancel}
-                        okText="OK"
-                        cancelText="Cancel"
-                        okButtonProps={{ type: "primary" }}
-                        placement="top"
-                      >
-                        <button
-                          type="submit"
-                          className="bg-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-emerald-700 transition-colors duration-200 flex items-center gap-2"
-                          onClick={handleUpdate}
-                        >
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </button>
-                      </Popconfirm>
-                      <button
-                        type="button"
-                        onClick={handleCancel}
-                        className="bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Password Change Form */}
-                <div className="bg-white rounded-lg p-8 shadow-sm border border-emerald-100">
-                  <h3 className="text-xl font-semibold text-emerald-800 mb-6 flex items-center gap-2">
-                    <Lock className="w-5 h-5" />
-                    Change Password
-                  </h3>
-                  <form onSubmit={handlePassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Current Password
-                      </label>
-                      <input
-                        type="password"
-                        name="current_password"
-                        value={passwords.current_password}
-                        onChange={handlePasswordChange}
-                        className="w-full p-4 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors duration-200"
-                        placeholder="Enter current password"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        name="new_password"
-                        value={passwords.new_password}
-                        onChange={handlePasswordChange}
-                        className="w-full p-4 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors duration-200"
-                        placeholder="Enter new password"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
-                    >
-                      <Lock className="w-4 h-4" />
-                      Change Password
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {/* Message Display */}
-            {message && (
-              <div className="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                {message}
-              </div>
-            )}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Full name">
+              <input
+                name="full_name"
+                value={form.full_name}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                name="email"
+                value={form.email}
+                readOnly
+                className={`${inputClass} bg-gray-50 text-gray-500`}
+              />
+            </Field>
+            <Field label="Gender">
+              <select
+                name="gender"
+                value={form.gender}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="">—</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+              </select>
+            </Field>
+            <Field label="Age">
+              <input
+                type="number"
+                name="age"
+                value={form.age}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </Field>
           </div>
-        </div>
+        </section>
+
+        <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900">Body measurements</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Weight (kg)">
+              <input
+                type="number"
+                name="weight"
+                value={form.weight}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Height (cm)">
+              <input
+                type="number"
+                name="height"
+                value={form.height}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Goal weight (kg)">
+              <input
+                type="number"
+                name="goal_weight"
+                value={form.goal_weight}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="BMI">
+              <div className="flex items-center gap-3 px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50">
+                <span className="text-2xl font-bold text-gray-900">
+                  {bmi ?? "—"}
+                </span>
+                {bmi != null && (
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${bmiStatus.className}`}
+                  >
+                    {bmiStatus.label}
+                  </span>
+                )}
+              </div>
+            </Field>
+          </div>
+        </section>
+
+        <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-semibold text-gray-900">Daily goals</h2>
+            <span className="text-lg font-bold text-[#24a17b]">
+              {formatNumber(form.step_goal)}
+            </span>
+          </div>
+          <div>
+            <input
+              type="range"
+              name="step_goal"
+              min={1000}
+              max={100000}
+              step={500}
+              value={form.step_goal}
+              onChange={handleChange}
+              className="w-full h-2 rounded-lg appearance-none bg-gray-200 accent-[#24a17b] cursor-pointer"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>1,000</span>
+              <span>100,000</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Stats at a glance</h2>
+          <dl className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Current streak</dt>
+              <dd className="font-semibold text-gray-900 flex items-center gap-1">
+                {streak?.current_streak ?? authUser?.current_streak ?? 0} days
+                <Flame className="w-4 h-4 text-orange-500" />
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Longest streak</dt>
+              <dd className="font-semibold text-gray-900">
+                {streak?.longest_streak ?? 0} days
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Total meals logged</dt>
+              <dd className="font-semibold text-gray-900">{mealCount}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Member since</dt>
+              <dd className="font-semibold text-gray-900">
+                {user?.created_at
+                  ? new Date(user.created_at).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between items-center">
+              <dt className="text-gray-500">Account role</dt>
+              <dd>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e8f5f0] text-[#1a7a5c]">
+                  {user?.role || "user"}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </section>
       </div>
-    </div>
+    </AppShell>
   );
 }
