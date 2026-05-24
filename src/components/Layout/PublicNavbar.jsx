@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { LeafyGreen, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import CaloviaLogo from "./CaloviaLogo";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -17,12 +18,11 @@ export default function PublicNavbar() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200/80 px-4 sm:px-8 py-3.5">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-[30px] h-[30px] bg-[#1D9E75] rounded-lg flex items-center justify-center">
-            <LeafyGreen className="w-[17px] h-[17px] text-white" strokeWidth={2} />
-          </div>
-          <span className="text-[17px] font-medium text-gray-900">Calovia</span>
-        </Link>
+        <CaloviaLogo
+          to="/"
+          imageClassName="h-[75px] w-[75px]"
+          className="shrink-0 [&_span]:text-[17px] [&_span]:font-medium"
+        />
 
         <nav className="hidden lg:flex items-center gap-6">
           {NAV_LINKS.map((item) => (

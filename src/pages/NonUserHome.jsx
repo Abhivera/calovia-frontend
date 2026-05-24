@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import MealAnalysisResult from "@/components/meal/MealAnalysisResult";
 import { publicAnalyzeFood } from "@/api/images";
 import HeroSection from "@/components/home/HeroSection";
+import CaloviaLogo from "@/components/Layout/CaloviaLogo";
 import {
   Camera,
   Footprints,
@@ -13,7 +14,6 @@ import {
   Check,
   X,
   Loader2,
-  LeafyGreen,
 } from "lucide-react";
 
 const BRAND = "#1D9E75";
@@ -457,15 +457,11 @@ export default function NonUserHome() {
       {/* Footer */}
       <footer className="border-t border-gray-200 px-4 sm:px-8 py-6">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: BRAND }}
-            >
-              <LeafyGreen className="w-3.5 h-3.5 text-white" strokeWidth={2} />
-            </div>
-            <span className="text-sm font-medium">Calovia</span>
-          </div>
+          <CaloviaLogo
+            link={false}
+            imageClassName="h-[60px] w-[60px]"
+            className="[&_span]:text-sm [&_span]:font-medium"
+          />
           <div className="flex gap-5">
             {["Privacy", "Terms", "API docs", "Contact"].map((label) => (
               <span

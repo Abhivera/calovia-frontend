@@ -5,6 +5,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { login, getCurrentUser, clearError, register } from "../slices/authSlice";
 import { ArrowUpRight } from "lucide-react";
+import CaloviaLogo from "../components/Layout/CaloviaLogo";
 
 const loginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email address").required("Email is required"),
@@ -68,7 +69,12 @@ export default function Auth() {
     <div className="min-h-screen bg-[#f7f8f6] flex flex-col items-center justify-center px-4 py-10">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-3">
-          <div className="w-10 h-10 rounded-lg bg-[#24a17b]" aria-hidden />
+          <CaloviaLogo
+            to="/"
+            showText={false}
+            imageClassName="h-[120px] w-[120px]"
+            className="justify-center"
+          />
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Calovia</h1>
         <p className="text-sm text-gray-500 mt-1">
