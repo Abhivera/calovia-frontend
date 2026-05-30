@@ -1,0 +1,20 @@
+/** Shared legal / company details — update here when business info changes. */
+export const LEGAL_META = {
+  companyName: "Calovia",
+  productName: "Calovia",
+  tagline: "AI-powered nutrition and activity tracking",
+  website: "https://calovia.app",
+  supportEmail: "support@calovia.app",
+  privacyEmail: "privacy@calovia.app",
+  legalEmail: "legal@calovia.app",
+  abuseEmail: "abuse@calovia.app",
+  accessibilityEmail: "accessibility@calovia.app",
+  effectiveDate: "2026-05-30",
+  jurisdiction: "Republic of India",
+  courts: "Bengaluru, Karnataka",
+  dataRegion: "India (ap-south-1) and/or regions used by our cloud providers",
+  minAge: 16,
+  freeAnalyzeLimit: 5,
+  proPriceInr: 299,
+  proTrialMonths: 3,
+};

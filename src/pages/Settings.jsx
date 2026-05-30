@@ -198,7 +198,7 @@ export default function Settings() {
           />
           <RowButton
             label="Session token"
-            description="JWT · expires in 7 days"
+            description="Secured with Firebase Authentication"
             buttonLabel="Sign out"
             onClick={handleSignOut}
           />

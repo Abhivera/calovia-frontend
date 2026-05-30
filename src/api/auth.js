@@ -1,23 +1,17 @@
 import axiosInstance from "./axiosInstance";
 
-/** @typedef {{ email: string, password: string, full_name?: string }} RegisterBody */
-/** @typedef {{ email: string, password: string }} LoginBody */
-/** @typedef {{ access_token: string, token_type: string }} TokenResponse */
-
 /**
- * @param {RegisterBody} data
- * @returns {Promise<TokenResponse>}
+ * Link Firebase sign-in to a Calovia user (create or update on first sign-up).
+ *
+ * Request:  POST /auth/session
+ * Headers:  Authorization: Bearer <firebase_id_token>
+ * Body:     { "full_name"?: string }
+ *
+ * Response: UserResponse (same shape as GET /users/me)
+ *
+ * @param {{ full_name?: string }} [data]
  */
-export async function register(data) {
-  const res = await axiosInstance.post("/auth/register", data);
-  return res.data;
-}
-
-/**
- * @param {LoginBody} data
- * @returns {Promise<TokenResponse>}
- */
-export async function login(data) {
-  const res = await axiosInstance.post("/auth/login", data);
+export async function syncSession(data = {}) {
+  const res = await axiosInstance.post("/auth/session", data);
   return res.data;
 }

@@ -1,5 +1,7 @@
 import axios from "axios";
+import { signOut } from "firebase/auth";
 import { API_CONFIG } from "@/config/api";
+import { auth } from "@/lib/firebase";
 
 const axiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -8,10 +10,26 @@ const axiosInstance = axios.create({
   },
 });
 
+/** @param {import('axios').AxiosError} error */
+function shouldSignOutOn401(error) {
+  const status = error.response?.status;
+  if (status !== 401) return false;
+
+  const detail = error.response?.data?.detail;
+  if (typeof detail === "string") {
+    // Missing Calovia row — handled by resolveBackendUser + POST /auth/session
+    if (detail.includes("Account not found")) return false;
+    return true;
+  }
+
+  return true;
+}
+
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
+  async (config) => {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
       config.headers.Authorization = `Bearer ${token}`;
     }
     if (config.data instanceof FormData) {
@@ -24,10 +42,13 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      if (!window.location.pathname.startsWith("/login")) {
+  async (error) => {
+    if (shouldSignOutOn401(error)) {
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+      const path = window.location.pathname;
+      if (!path.startsWith("/login") && !path.startsWith("/register")) {
         window.location.replace("/login");
       }
     }

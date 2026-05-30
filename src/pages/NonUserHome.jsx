@@ -49,7 +49,7 @@ const FEATURES = [
   {
     icon: Lock,
     title: "Private & secure",
-    desc: "JWT auth, image ownership, and no ads. Your data is yours — export or delete anytime.",
+    desc: "Firebase auth, image ownership, and no ads. Your data is yours — export or delete anytime.",
   },
 ];
 
@@ -462,15 +462,31 @@ export default function NonUserHome() {
             imageClassName="h-[60px] w-[60px]"
             className="[&_span]:text-sm [&_span]:font-medium"
           />
-          <div className="flex gap-5">
-            {["Privacy", "Terms", "API docs", "Contact"].map((label) => (
-              <span
-                key={label}
-                className="text-xs text-gray-400 cursor-pointer hover:text-gray-600"
-              >
-                {label}
-              </span>
-            ))}
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
+            <Link
+              to="/legal/privacy"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              to="/legal/terms"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Terms
+            </Link>
+            <Link
+              to="/legal"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Legal
+            </Link>
+            <a
+              href="mailto:support@calovia.app"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Contact
+            </a>
           </div>
           <p className="text-xs text-gray-400">© 2026 Calovia. All rights reserved.</p>
         </div>

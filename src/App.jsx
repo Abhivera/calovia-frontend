@@ -16,24 +16,39 @@ import ActivityLog from "./pages/ActivityLog";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { getCurrentUser } from "./slices/authSlice";
+import LegalIndex from "./pages/legal/LegalIndex";
+import LegalPolicy from "./pages/legal/LegalPolicy";
+import { getCurrentUser, initializeAuth } from "./slices/authSlice";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function AppRoutes() {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { token, user } = useSelector((state) => state.auth);
+  const { token, user, authReady } = useSelector((state) => state.auth);
 
   const isAuthPage =
     location.pathname === "/login" || location.pathname === "/register";
-  const showPublicNav = !token && !isAuthPage;
+  const isLegalPage = location.pathname.startsWith("/legal");
+  const showPublicNav = authReady && !token && !isAuthPage && !isLegalPage;
 
   useEffect(() => {
-    if (token && !user) {
+    dispatch(initializeAuth());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (authReady && token && !user) {
       dispatch(getCurrentUser());
     }
-  }, [token, user, dispatch]);
+  }, [authReady, token, user, dispatch]);
+
+  if (!authReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-emerald-600">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <>
@@ -43,6 +58,8 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/register" element={<Auth />} />
+        <Route path="/legal" element={<LegalIndex />} />
+        <Route path="/legal/:slug" element={<LegalPolicy />} />
         <Route
           path="/meal-log"
           element={
