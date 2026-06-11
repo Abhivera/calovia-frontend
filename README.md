@@ -1,104 +1,85 @@
 # Calovia Frontend
 
-React (Vite) app for the Calovia nutrition and activity tracking API.
+React Native Web app (Expo SDK 56). One codebase for **web**, **iOS**, and **Android**.
 
-## Environment
+## Stack
 
-Copy `.env.example` to `.env`:
+| Layer | Choice |
+|-------|--------|
+| Framework | Expo ~56, React 19, React Native 0.85 |
+| Routing | Expo Router (file-based) |
+| State | Redux Toolkit (auth slice) |
+| Auth | Firebase (email + Google on web) |
+| API | Axios → Calovia FastAPI backend |
+| Charts | react-native-gifted-charts |
+| Icons | lucide-react-native |
+| Storage | AsyncStorage (settings) |
 
-```sh
+## Quick start
+
+```bash
 cp .env.example .env
-```
+# Set EXPO_PUBLIC_API_BASE_URL and EXPO_PUBLIC_FIREBASE_* values
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Backend API base (includes `/api/v1`) |
-
-## Development
-
-```sh
 npm install
-npm run dev
+npm run web      # http://localhost:8081
+npm run android
+npm run ios
 ```
 
-App: [http://localhost:5173](http://localhost:5173)  
-API docs (backend): [http://localhost:8000/docs](http://localhost:8000/docs)
+Backend must be running at `EXPO_PUBLIC_API_BASE_URL` (default `http://localhost:8000/api/v1`).
 
-## Build
+Set backend `FRONTEND_URL=http://localhost:8081` for CORS.
 
-```sh
-npm run build
-npm run preview
-```
+## Environment variables
 
-## Docker
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `EXPO_PUBLIC_API_BASE_URL` | Yes | e.g. `http://localhost:8000/api/v1` |
+| `EXPO_PUBLIC_FIREBASE_API_KEY` | Yes | Firebase web SDK config |
+| `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | Yes | |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | Yes | Must match backend |
+| `EXPO_PUBLIC_FIREBASE_APP_ID` | Yes | |
 
-```sh
-docker build -t calovia-frontend .
-docker run -p 5173:80 calovia-frontend
-```
+## Routes
 
-## Project structure
+| Path | Screen | Auth |
+|------|--------|------|
+| `/` | Dashboard or landing | Optional |
+| `/login`, `/register` | Auth | Public |
+| `/meal-log` | Meal logging + AI analysis | Required |
+| `/activity` | Activity logging | Required |
+| `/progress` | Trends & charts | Required |
+| `/profile` | Profile & avatar | Required |
+| `/settings` | Preferences | Required |
+| `/legal`, `/legal/:slug` | Legal pages | Public |
+
+## Project layout
 
 ```
 calovia-frontend/
-├── public/                 # Static assets (favicon, etc.)
+├── app/                 # Expo Router routes
 ├── src/
-│   ├── api/                # HTTP clients (Axios + public fetch)
-│   │   ├── auth.js         # POST /auth/login, /auth/register
-│   │   ├── axiosInstance.js
-│   │   ├── images.js       # Meal photo upload, analyze, relog
-│   │   ├── meal.js         # Meal summaries
-│   │   ├── steps.js        # Step tracking summaries
-│   │   ├── user.js         # Profile, streak, net calories, avatar
-│   │   └── userCalories.js # Activity / exercise log entries
-│   ├── components/
-│   │   ├── dashboard/      # MacroRings, StepBarChart
-│   │   ├── Layout/         # AppShell, AppSidebar, PublicNavbar, …
-│   │   ├── meal/           # MealAnalysisResult
-│   │   └── ui/             # PillButton, Toggle
-│   ├── config/
-│   │   └── api.js          # Base URL helpers
-│   ├── lib/
-│   │   ├── activities.js   # Activity type presets
-│   │   ├── apiErrors.js    # Axios error message helper
-│   │   ├── bmi.js
-│   │   ├── format.js       # Dates, numbers, initials
-│   │   └── settingsStorage.js
-│   ├── pages/              # Route screens (see below)
-│   ├── slices/
-│   │   └── authSlice.js    # Redux: token, user, login/register
-│   ├── App.jsx             # Router + auth bootstrap
-│   ├── main.jsx            # React root + Redux Provider
-│   ├── store.js
-│   └── index.css           # Tailwind + theme tokens
-├── .env.example
-├── components.json         # shadcn/ui config (optional CLI)
-├── Dockerfile
-├── index.html
-├── nginx.conf
-├── package.json
-└── vite.config.js
+│   ├── api/             # Axios clients
+│   ├── components/      # UI + layout
+│   ├── content/legal/   # Policy text
+│   ├── lib/             # Firebase, format, image picker
+│   ├── screens/         # Page implementations
+│   ├── slices/          # Redux auth
+│   └── theme/           # Brand colors
+├── assets/
+├── app.json
+└── .env.example
 ```
 
-### Routes
+## Production web build
 
-| Path | Page | Auth |
-|------|------|------|
-| `/` | `Home` → `Dashboard` (signed in) or `NonUserHome` (guest) | Optional |
-| `/login` | `Auth` (login tab) | Public |
-| `/register` | `Auth` (register tab) | Public |
-| `/meal-log` | `MealLog` | Required |
-| `/activity` | `ActivityLog` | Required |
-| `/progress` | `Progress` | Required |
-| `/profile` | `Profile` | Required |
-| `/settings` | `Settings` | Required |
-| `*` | `NotFound` | Public |
+```bash
+npx expo export --platform web
+# Output in dist/
+```
 
-Authenticated screens use `AppShell` (sidebar + mobile header). Guests on `/` see the public landing with optional food photo analysis (`POST /public/analyze-food`).
+## Native notes
 
-### Auth
-
-- `POST /auth/login` and `POST /auth/register` (email + password JSON)
-- Access token in `localStorage` as `access_token`
-- `ProtectedRoute` redirects unauthenticated users to `/login`
+- **Google sign-in on web** uses Firebase `signInWithPopup`.
+- For native Google auth, add `@react-native-google-signin/google-signin` or Expo AuthSession.
