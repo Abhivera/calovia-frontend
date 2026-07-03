@@ -366,7 +366,7 @@ export default function ActivityLogScreen() {
               borderBottomColor: "#f3f4f6",
             }}
           >
-            Today's activities
+            Today&apos;s activities
           </Text>
           {loading ? (
             <View style={{ padding: 32, alignItems: "center" }}>

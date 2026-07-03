@@ -8,20 +8,25 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "build": "expo export --platform web",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~6.1.2",
+    "@expo/metro-runtime": "~56.0.16",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.10.0",
     "babel-preset-expo": "~56.0.0",
-    "expo": "~56.0.9",
+    "expo": "~56.0.13",
     "expo-constants": "~56.0.18",
-    "expo-document-picker": "~14.0.7",
-    "expo-image-picker": "~17.0.8",
+    "expo-document-picker": "~56.0.4",
+    "expo-image-picker": "~56.0.19",
     "expo-linking": "~56.0.14",
-    "expo-router": "~56.2.9",
+    "expo-router": "~56.2.12",
     "expo-status-bar": "~56.0.4",
     "firebase": "^11.10.0",
     "formik": "^2.4.6",
@@ -30,9 +35,9 @@
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-gifted-charts": "^1.4.64",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-svg": "15.12.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4",
     "react-native-toast-message": "^2.3.3",
     "react-native-web": "~0.21.0",
     "react-redux": "^9.2.0",
@@ -40,6 +45,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "typescript": "~6.0.3"
   }
 }

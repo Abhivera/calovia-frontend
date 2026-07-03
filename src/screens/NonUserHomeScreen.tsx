@@ -8,11 +8,11 @@ import {
   View,
 } from "react-native";
 import { Link } from "expo-router";
-import { Camera, Check, Loader2 } from "lucide-react-native";
+import { Camera } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import CaloviaLogo from "@/components/layout/CaloviaLogo";
 import MealAnalysisResult from "@/components/meal/MealAnalysisResult";
-import { Card, PrimaryButton } from "@/components/ui/Common";
+import { Card } from "@/components/ui/Common";
 import { publicAnalyzeFood } from "@/api/images";
 import { assetToUploadFile, pickImage } from "@/lib/imagePicker";
 import { colors } from "@/theme/colors";

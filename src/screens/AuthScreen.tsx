@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
-  ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { Link, usePathname, useRouter } from "expo-router";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { ArrowUpRight } from "lucide-react-native";
 import CaloviaLogo from "@/components/layout/CaloviaLogo";
 import { Card, PrimaryButton } from "@/components/ui/Common";
 import {
@@ -21,7 +19,6 @@ import {
   register,
 } from "@/slices/authSlice";
 import { colors } from "@/theme/colors";
-import { TextInput } from "react-native";
 
 const loginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email address").required("Email is required"),
@@ -77,11 +74,7 @@ export default function AuthScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const { token, loading, error } = useAppSelector((state) => state.auth);
-  const [mode, setMode] = useState(pathname === "/register" ? "register" : "login");
-
-  useEffect(() => {
-    setMode(pathname === "/register" ? "register" : "login");
-  }, [pathname]);
+  const mode = pathname === "/register" ? "register" : "login";
 
   useEffect(() => {
     dispatch(clearError());

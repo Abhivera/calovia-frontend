@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppDispatch } from "@/store";
 import { Camera, Flame } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import AppShell from "@/components/layout/AppShell";
@@ -64,7 +64,6 @@ const GENDERS = [
 
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
-  const { user: authUser } = useAppSelector((state) => state.auth);
 
   const [user, setUser] = useState<User | null>(null);
   const [streak, setStreak] = useState<Record<string, number> | null>(null);

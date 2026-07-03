@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Image, Linking, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { ArrowUpRight, Flame } from "lucide-react-native";
 import AppShell from "@/components/layout/AppShell";
@@ -207,7 +207,7 @@ export default function DashboardScreen() {
                     </Pressable>
                   </Link>
                 </View>
-                <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 12 }}>Today's meals</Text>
+                <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 12 }}>Today&apos;s meals</Text>
                 {meals.length === 0 ? (
                   <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: "center", paddingVertical: 16 }}>
                     No meals logged today.{" "}

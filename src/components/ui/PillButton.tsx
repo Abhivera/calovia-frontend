@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import { colors } from "@/theme/colors";
 
 export default function PillButton({
